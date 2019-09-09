@@ -21,6 +21,9 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageBuilder;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,7 +53,11 @@ public class Sender {
 		{
 			List<Data> dataList = Arrays.asList(mapper.readValue(new File(String.valueOf(dataResource.getFile())), Data[].class));
 			for (Data data : dataList ) {
-				this.rabbitTemplate.convertAndSend("scdf_amq_test", data);
+				Message message = MessageBuilder
+						.withBody(data.toString().getBytes())
+						.setContentType(MessageProperties.CONTENT_TYPE_JSON)
+						.build();
+				this.rabbitTemplate.convertAndSend("scdf_amq_test", message);
 				logger.info(" Data published sucessfully to rabbitmq  :   " + data.getName());
 			}
 		}
